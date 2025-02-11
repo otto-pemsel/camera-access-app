@@ -1,49 +1,54 @@
 let video;
 let img;
-let captureButton, resetButton, switchCameraButton, saveButton;
+let captureButton, resetButton, switchCameraButton, saveButton, fullscreenButton;
 let distortionSlider;
 let isFrontCamera = true;
 let processing = false; // To show black screen while processing
 let imageCaptured = false; // Track if an image has been taken
-let fullscreenButton;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-
-  fullscreenButton = createButton("⛶ Fullscreen");
-  fullscreenButton.position(width - 140, height / 2 + 120);
-  fullscreenButton.mousePressed(enableFullscreen);
+  textAlign(CENTER, CENTER);
   
-  // Force landscape mode
-  if (windowWidth < windowHeight) {
-    alert("Please rotate your phone to landscape mode.");
-  }
-
+  // Start Camera
   startCamera();
 
-  // Create buttons positioned on the right side
-  captureButton = createButton("📸 Capture Photo");
-  captureButton.position(width - 140, height / 2 - 60);
+  // Fullscreen Button
+  fullscreenButton = createButton("⛶ Fullscreen");
+  fullscreenButton.style("font-size", "20px");
+  fullscreenButton.position(width - 160, height / 2 + 120);
+  fullscreenButton.mousePressed(enableFullscreen);
+  
+  // Capture Button - Centered
+  captureButton = createButton("📸 Capture");
+  captureButton.style("font-size", "22px");
+  captureButton.style("padding", "15px");
+  captureButton.position(width / 2 - 60, height - 100);
   captureButton.mousePressed(takePhoto);
 
+  // Switch Camera Button
   switchCameraButton = createButton("🔄 Switch Camera");
-  switchCameraButton.position(width - 140, height / 2);
+  switchCameraButton.style("font-size", "18px");
+  switchCameraButton.position(width - 160, height / 2);
   switchCameraButton.mousePressed(switchCamera);
 
+  // Reset Button
   resetButton = createButton("🔄 Reset");
-  resetButton.position(width - 140, height / 2 + 60);
+  resetButton.style("font-size", "18px");
+  resetButton.position(width - 160, height / 2 + 60);
   resetButton.mousePressed(resetPhoto);
-  resetButton.hide(); // Hide until needed
+  resetButton.hide();
 
-  saveButton = createButton("💾 Save Image");
-  saveButton.position(width - 140, height / 2 + 120);
+  // Save Button
+  saveButton = createButton("💾 Save");
+  saveButton.style("font-size", "18px");
+  saveButton.position(width - 160, height / 2 + 180);
   saveButton.mousePressed(saveImage);
-  saveButton.hide(); // Hide until needed
+  saveButton.hide();
 
-  // Create a slider to control distortion amount
-  distortionSlider = createSlider(1, 50, 5); // Increased the max to 50 for finer control
-  distortionSlider.position(width - 140, height / 2 + 180);
-  text('100 Yrs',140, 4 + 180);
+  // Distortion Slider
+  distortionSlider = createSlider(1, 20, 5); // Min: 1, Max: 20, Default: 5
+  distortionSlider.position(width / 2 - 50, height - 50);
 }
 
 function draw() {
@@ -54,15 +59,21 @@ function draw() {
   } else {
     image(video, 0, 0, width, height);
   }
+
+  // Draw slider labels
+  fill(255);
+  textSize(16);
+  text("100 yrs", distortionSlider.x - 30, distortionSlider.y + 10);
+  text("100,000 yrs", distortionSlider.x + distortionSlider.width + 30, distortionSlider.y + 10);
 }
 
-// Start camera with video-only (no mic)
+// Start Camera
 function startCamera() {
   let constraints = {
     video: {
       facingMode: isFrontCamera ? "user" : "environment"
     },
-    audio: false // Disable microphone
+    audio: false
   };
 
   video = createCapture(constraints);
@@ -70,24 +81,24 @@ function startCamera() {
   video.hide();
 }
 
-// Switch between front and back camera
+// Switch Camera
 function switchCamera() {
   isFrontCamera = !isFrontCamera;
   video.remove();
   startCamera();
 }
 
-// Capture photo and apply distortion
+// Take Photo and Apply Distortion
 function takePhoto() {
   processing = true;
   setTimeout(() => {
     img = createImage(video.width, video.height);
     img.copy(video, 0, 0, video.width, video.height, 0, 0, img.width, img.height);
     
-    // Apply the distortion based on slider value
+    // Apply distortion based on slider value
     let distortionAmount = distortionSlider.value();
     for (let i = 0; i < distortionAmount; i++) {
-      distortImage(img);  // Apply a gradual distortion
+      distortImage(img);
     }
 
     processing = false;
@@ -95,12 +106,12 @@ function takePhoto() {
 
     captureButton.hide();
     switchCameraButton.hide();
-    resetButton.show(); // Show reset button
-    saveButton.show();  // Show save button
-  }, 1000); // 1-second black screen for processing
+    resetButton.show();
+    saveButton.show();
+  }, 1000);
 }
 
-// Reset to take a new photo
+// Reset Photo
 function resetPhoto() {
   imageCaptured = false;
   processing = false;
@@ -108,24 +119,21 @@ function resetPhoto() {
   captureButton.show();
   switchCameraButton.show();
   resetButton.hide();
-  saveButton.hide(); // Hide save button when resetting
+  saveButton.hide();
 }
 
-// Gradual distortion effect (simulating digital erosion)
+// Apply Distortion Effect
 function distortImage(img) {
   img.loadPixels();
+  let distAmount = 5 + random(0, 10);
   
-  // Map the distortion amount to a more controlled value
-  let distAmount = map(distortionSlider.value(), 1, 50, 1, 100);  // More subtle at low values
-
-  // Randomly shift columns or rows of pixels to simulate data corruption
   for (let i = 0; i < distAmount; i++) {
-    let x = floor(random(img.width)); // Choose a random column
-    let shiftAmount = floor(random(10, 20)); // Shift by random amount
+    let x = floor(random(img.width));
+    let shiftAmount = floor(random(10, 20));
     
     for (let y = 0; y < img.height; y++) {
       let pixelIndex = (x + y * img.width) * 4;
-      let newIndex = pixelIndex + shiftAmount * 4;  // Shift horizontally by `shiftAmount`
+      let newIndex = pixelIndex + shiftAmount * 4;
       
       if (newIndex < img.pixels.length) {
         img.pixels[pixelIndex] = img.pixels[newIndex];
@@ -134,63 +142,17 @@ function distortImage(img) {
       }
     }
   }
-
-  // Apply pixel sorting effect with the distortion amount
-  pixelSort(img, distAmount);  // Pass distortion amount to control sorting effect
   
   img.updatePixels();
 }
 
-// Pixel sorting effect (with mapping to distortion amount)
-function pixelSort(img, distAmount) {
-  let rowHeight = distAmount; // Map distortion amount to row height
-
-  for (let y = 0; y < img.height; y += rowHeight) {
-    let rowPixels = [];
-
-    // Collect pixels in the row
-    for (let x = 0; x < img.width; x++) {
-      for (let i = 0; i < rowHeight; i++) {
-        let index = (x + (y + i) * img.width) * 4;
-
-        if (index + 3 < img.pixels.length) { // Ensure we don't go out of bounds
-          rowPixels.push({
-            index,
-            r: img.pixels[index],
-            g: img.pixels[index + 1],
-            b: img.pixels[index + 2]
-          });
-        }
-      }
-    }
-
-    // Sort pixels by brightness (sum of r, g, b)
-    rowPixels.sort((a, b) => (a.r + a.g + a.b) - (b.r + b.g + b.b));
-
-    // Set the sorted pixels back into the image
-    for (let x = 0; x < img.width; x++) {
-      for (let i = 0; i < rowHeight; i++) {
-        let index = (x + (y + i) * img.width) * 4;
-        let pixel = rowPixels[x * rowHeight + i];
-        
-        if (pixel) {  // Check if pixel exists
-          img.pixels[index] = pixel.r;
-          img.pixels[index + 1] = pixel.g;
-          img.pixels[index + 2] = pixel.b;
-        }
-      }
-    }
-  }
-
-  img.updatePixels();
-}
-
-// Save the distorted image
+// Save Image with Unique Name
 function saveImage() {
-  saveCanvas('distorted', 'png');
+  let timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  saveCanvas(`distorted-${timestamp}`, 'png');
 }
 
-// Enable fullscreen mode
+// Enable Fullscreen
 function enableFullscreen() {
   let elem = document.documentElement;
   if (elem.requestFullscreen) {
@@ -198,4 +160,11 @@ function enableFullscreen() {
   } else if (elem.webkitRequestFullscreen) {
     elem.webkitRequestFullscreen();
   }
+}
+
+// Ensure Layout Updates on Resize
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  captureButton.position(width / 2 - 60, height - 100);
+  distortionSlider.position(width / 2 - 50, height - 50);
 }
