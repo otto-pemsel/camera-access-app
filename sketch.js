@@ -49,7 +49,7 @@ function setup() {
   // Create a slider to control distortion amount
   distortionSlider = createSlider(1, 50, 5); // Increased the max to 50 for finer control
   distortionSlider.position((width / 2) - 200, height - 120);
-  distortionSlider.size(400);
+  distortionSlider.size(400,20);
 }
 
 function draw() {
@@ -101,26 +101,59 @@ function switchCamera() {
 }
 
 // Capture photo and apply distortion
-function takePhoto() {
-  processing = true;
-  setTimeout(() => {
-    img = createImage(video.width, video.height);
-    img.copy(video, 0, 0, video.width, video.height, 0, 0, img.width, img.height);
+// function takePhoto() {
+//   processing = true;
+//   setTimeout(() => {
+//     img = createImage(video.width, video.height);
+//     img.copy(video, 0, 0, video.width, video.height, 0, 0, img.width, img.height);
     
-    // Apply the distortion based on slider value
-    let distortionAmount = distortionSlider.value();
-    for (let i = 0; i < distortionAmount; i++) {
-      distortImage(img);  // Apply a gradual distortion
-    }
+//     // Apply the distortion based on slider value
+//     let distortionAmount = distortionSlider.value();
+//     for (let i = 0; i < distortionAmount; i++) {
+//       distortImage(img);  // Apply a gradual distortion
+//     }
 
-    processing = false;
-    imageCaptured = true;
+//     processing = false;
+//     imageCaptured = true;
 
-    captureButton.hide();
-    switchCameraButton.hide();
-    resetButton.show(); // Show reset button
-    saveButton.show();  // Show save button
-  }, 1000); // 1-second black screen for processing
+//     captureButton.hide();
+//     switchCameraButton.hide();
+//     distortionSlider.hide();
+//     resetButton.show(); // Show reset button
+//     saveButton.show();  // Show save button
+//   }, 10000); // 1-second black screen for processing
+//   //,);
+// }
+
+// Capture photo and apply distortion
+async function takePhoto() {
+  processing = true; // Start loading animation
+  await processPhoto(); // Process asynchronously
+  processing = false; // End loading animation
+}
+
+async function processPhoto() {
+  img = createImage(video.width, video.height);
+  img.copy(video, 0, 0, video.width, video.height, 0, 0, img.width, img.height);
+
+  // Apply the distortion gradually
+  let distortionAmount = distortionSlider.value();
+  for (let i = 0; i < distortionAmount; i++) {
+    await delay(5);  // Tiny delay per step to keep animation running
+    distortImage(img);
+  }
+
+  imageCaptured = true;
+  captureButton.hide();
+  switchCameraButton.hide();
+  distortionSlider.hide();
+  resetButton.show();
+  saveButton.show();
+}
+
+// Small async delay function (prevents blocking)
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Reset to take a new photo
@@ -130,6 +163,7 @@ function resetPhoto() {
 
   captureButton.show();
   switchCameraButton.show();
+  distortionSlider.show();
   resetButton.hide();
   saveButton.hide(); // Hide save button when resetting
 }
@@ -206,6 +240,7 @@ function pixelSort(img, distAmount) {
   }
 
   img.updatePixels();
+
 }
 //saving the image
 function saveImage() {
