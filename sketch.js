@@ -12,14 +12,14 @@ var speed = 0;
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
-  fullscreenButton = createButton("⛶ Fullscreen");
-  fullscreenButton.position(width - 140, height / 2 + 120);
-  fullscreenButton.mousePressed(enableFullscreen);
+  // fullscreenButton = createButton("⛶ Fullscreen");
+  // fullscreenButton.position(width - 140, height / 2 + 120);
+  // fullscreenButton.mousePressed(enableFullscreen);
   
-  // Force landscape mode
-  if (windowWidth < windowHeight) {
-    alert("Please rotate your phone to landscape mode.");
-  }
+  // // Force landscape mode
+  // if (windowWidth < windowHeight) {
+  //   alert("Please rotate your phone to landscape mode.");
+  // }
 
   startCamera();
 
@@ -48,8 +48,8 @@ function setup() {
 
   // Create a slider to control distortion amount
   distortionSlider = createSlider(1, 50, 5); // Increased the max to 50 for finer control
-  distortionSlider.position(width - 140, height / 2 + 180);
-  text('100 Yrs',140, 4 + 180);
+  distortionSlider.position((width / 2) - 200, height - 120);
+  distortionSlider.size(400);
 }
 
 function draw() {
@@ -207,11 +207,12 @@ function pixelSort(img, distAmount) {
 
   img.updatePixels();
 }
-
-// Save the distorted image
+//saving the image
 function saveImage() {
-  saveCanvas('distorted', 'png');
+  let timestamp = int(millis()); // Get a unique timestamp
+  saveCanvas('distorted_' + timestamp, 'png'); // Append timestamp to filename
 }
+
 
 // Enable fullscreen mode
 function enableFullscreen() {
